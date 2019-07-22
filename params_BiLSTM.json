@@ -1,0 +1,20 @@
+{
+
+    "input_path": "./data/NEtagged_data.json",
+    "tag_map_path": "./data/tag_map_general.json",
+    "tokenizer_path": "./data/tokenizer.model",
+
+    "max_length": 200,
+    "num_layer": 1,
+    "dropout": 0.5,
+    "embedding_size": 300,
+    "hidden_size": 512,
+    "tag_map": "",
+
+    "num_epoch": 200,
+    "cuda" : "False",
+    "lr" : 1e-4,
+    "batch_size": 512,
+    "clip": 0.5
+
+}
