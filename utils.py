@@ -227,19 +227,6 @@ def f1_score(tar_path, pre_path, tag, tag_map, length):
     print("\t{}\trecall {:.2f}\tprecision {:.2f}\tf1 {:.2f}".format(tag, recall, precision, f1))
     return recall, precision, f1
 
-
-def get_tags(path, tag, tag_map):
-    tag_idx = tag_map.get(tag)
-    positions = [i for i, x in enumerate(path) if x == tag_idx]
-
-    positions = sorted(positions)
-    gaps = [[s, e] for s, e in zip(positions, positions[1:]) if s + 1 < e]
-    edges = iter(positions[:1] + sum(gaps, []) + positions[-1:])
-
-    tags = [list(t) for t in list(zip(edges, edges))]
-    return tags
-
-
 def get_tags_BIO(path, tag, tag_map):
     begin_tag = tag_map.get("B-" + tag)
     mid_tag = tag_map.get("I-" + tag)
@@ -251,7 +238,6 @@ def get_tags_BIO(path, tag, tag_map):
     for index, tag in enumerate(path):
         if tag == begin_tag and index == 0:
             begin = 0
-
         elif tag == begin_tag:
             begin = index
         elif tag == mid_tag and last_tag in [mid_tag, begin_tag] and begin > -1:

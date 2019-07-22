@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     args.tag_map = tag_map
     tags = [tag[2:] for tag in tag_map.keys() if '<' in tag]
-    tags = list(np.unique(tags)) + ['O']
+    tags = list(np.unique(tags))
     args.tags = tags
 
     train_manager = DataManager(args)
