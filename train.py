@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 
 def evaluate():
     sentences, labels, length = zip(*dev_batch.__next__())
-    _, paths, _  = model(sentences)
+    _, paths, _ = model(sentences)
 
     print("\teval")
     for tag in args.tags:
