@@ -51,13 +51,16 @@ def load_model():
         use_cuda=args.cuda
     )
     
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location='cpu'))
     
     return (model, tokenizer, tag_map, id2tag)
 
-
 def inference(models, text):
     model, tokenizer, tag_map, id2tag = models
+    model.eval()
+
+    pad_token = tokenizer.piece_to_id('<pad>')
+    print(pad_token)
 
     if type(text) != list and type(text) == str:
         text = [text]
@@ -72,16 +75,15 @@ def inference(models, text):
 
     max_len = max(map(lambda x: len(x), text_idx))
     text_idx = [s + [0]*(max_len - len(s)) for s in text_idx]
+    print(text_idx)
     text_input = torch.tensor(text_idx, dtype=torch.long)
 
     _, path, probs = model(text_input)
     
     def NER_decode(path, text, text_tok):
-
-        detected_tag = [id2tag[tag] for tag in path[:len(text_tok)] if tag != tag_map['O']]
-        print(detected_tag)
+        print(path[:len(text_tok)])
+        detected_tag = [id2tag[tag] for tag in path[:len(text_tok)] if 'B-' in id2tag[tag]]
         detected_tag = np.unique([s.split('-')[1] for s in detected_tag]).tolist()
-        print(detected_tag)
 
         result = []
     
@@ -123,11 +125,13 @@ def inference(models, text):
 
 if __name__ == '__main__':
     models = load_model()
+    tokenizer = models[1]
+    tokenizer.piece_to_id('<pad>')
 
-    text = ['IT아웃소싱, 2010년 그림은',
+    text = ['미국 피플지',
             'LG전자(066570, www.lge.co.kr)는 10일 LS엠트로는 공조시스템 사업부문 인수 계약을 체결했다.', 
             '우면산, 관악산, 삼성산 : 토 14:00 ~ 토 22:00']
-    result = inference(models, text)
+    result = inference(models, text[1])
 
     for i, r in enumerate(result):
         print('Input text: {}'.format(text[i]))
@@ -135,7 +139,3 @@ if __name__ == '__main__':
         for entities in r:
             print(entities)
         print('-'*30)
-
-
-
-    
