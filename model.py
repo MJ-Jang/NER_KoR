@@ -70,7 +70,7 @@ class BiLSTMCRF(nn.Module):
         lstm_out, self.hidden = self.lstm(embeddings, self.hidden)
         lstm_out = lstm_out.view(self.batch_size, -1, self.hidden_dim)
         logits = self.hidden2tag(lstm_out)
-        logits = torch.nn.Softmax()(logits)
+        #logits = torch.nn.Softmax()(logits)
 
         return logits
 

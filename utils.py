@@ -44,7 +44,6 @@ class JsonConfig:
                 json.dump(dict(self.values), f)
 
 
-
 class DataManager():
     def __init__(self, args, data_type='train'):
         self.input_size = 0
@@ -119,7 +118,6 @@ class DataManager():
             i[0] = i[0] + (max_length - len(i[0])) * [0]
             i[1] = i[1] + (max_length - len(i[1])) * [0]
 
-
         return c_data
 
     def iteration(self):
@@ -129,7 +127,6 @@ class DataManager():
             idx += 1
             if idx > len(self.batch_data) - 1:
                 idx = 0
-
 
     def get_batch(self):
         for data in self.batch_data:
@@ -147,14 +144,14 @@ class NER_tagger:
 
     def _extract_entity(self, sentence):
         entity_dict = []
-        
+
         tags = re.findall(pattern='<[a-zA-Z]+>[^<>]+<[/a-zA-Z]+>', string=sentence)
         for tag in tags:
             tag = re.sub(pattern='</[a-zA-Z]+>', repl='', string=tag)
             key, value = tag.split('>')
             entity_dict.append([value, key + '>'])
         return entity_dict
-    
+
     def process(self, sentence, tag_type):
         '''
             sentence: input sentence with NER tagged (ex: <Model>아이폰X</Model> 구매하려구요)
@@ -162,7 +159,7 @@ class NER_tagger:
             '''
         if tag_type not in ['XO', 'BIO', 'raw']:
             raise ValueError('tag type should be "XO","BIO", or "raw"')
-        
+
         original_sentence = re.sub(pattern='<[a-zA-Z/]+>', repl='', string=sentence)
 
         entity_dict = self._extract_entity(sentence)
@@ -204,7 +201,7 @@ class NER_tagger:
                 if v_idx == len(value_token):
                     s_pos = s_pos + v_idx
                     break
-                    
+
         return (sent_token, tags)
 
 
@@ -214,8 +211,8 @@ def f1_score(tar_path, pre_path, tag, tag_map, length):
     right = 0.
     for idx, fetch in enumerate(zip(tar_path, pre_path)):
         tar, pre = fetch
-        tar_tags = get_tags_BIE(tar[:length[idx]], tag, tag_map)
-        pre_tags = get_tags_BIE(pre[:length[idx]], tag, tag_map)
+        tar_tags = get_tags_BIO(tar[:length[idx]], tag, tag_map)
+        pre_tags = get_tags_BIO(pre[:length[idx]], tag, tag_map)
 
         origin += len(tar_tags)
         found += len(pre_tags)
@@ -226,7 +223,7 @@ def f1_score(tar_path, pre_path, tag, tag_map, length):
 
     recall = 0. if origin == 0 else (right / origin)
     precision = 0. if found == 0 else (right / found)
-    f1 = 0. if recall+precision == 0 else (2*precision*recall)/(precision + recall)
+    f1 = 0. if recall + precision == 0 else (2 * precision * recall) / (precision + recall)
     print("\t{}\trecall {:.2f}\tprecision {:.2f}\tf1 {:.2f}".format(tag, recall, precision, f1))
     return recall, precision, f1
 
@@ -243,12 +240,10 @@ def get_tags(path, tag, tag_map):
     return tags
 
 
-def get_tags_BIE(path, tag, tag_map):
+def get_tags_BIO(path, tag, tag_map):
     begin_tag = tag_map.get("B-" + tag)
     mid_tag = tag_map.get("I-" + tag)
-    end_tag = tag_map.get("E-" + tag)
-    #single_tag = tag_map.get("S")
-    o_list = [tag_map.get("B-O"), tag_map.get("I-O"), tag_map.get("E-O")]
+
     begin = -1
     end = 0
     tags = []
@@ -256,47 +251,18 @@ def get_tags_BIE(path, tag, tag_map):
     for index, tag in enumerate(path):
         if tag == begin_tag and index == 0:
             begin = 0
+
         elif tag == begin_tag:
             begin = index
-        elif tag == end_tag and last_tag in [mid_tag, begin_tag] and begin > -1:
+        elif tag == mid_tag and last_tag in [mid_tag, begin_tag] and begin > -1:
             end = index
-            tags.append([begin, end])
-        elif tag in o_list:
+        elif tag == tag_map.get('O'):
             if last_tag == begin_tag:
                 tags.append([begin, begin])
+            elif last_tag == mid_tag:
+                end = index
+                tags.append([begin, end])
             else:
                 begin = -1
         last_tag = tag
     return tags
-
-###
-
-
-artifact_path = 'C:\\Users\\MJ_Jang\\Desktop\\workspace\\NER_all_in_one/'
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--input_path', type=str, default="./data/NER_data_v1.0.json")
-    parser.add_argument('--input_size', type=int, default=8000)
-    parser.add_argument('--vocab', type=dict, default={})
-    parser.add_argument('--tag_map', type=dict, default={})
-    parser.add_argument('--tags', type=list, default=['<Model>', 'O'])
-    parser.add_argument('--tokenizer_path', type=str,
-                        default=artifact_path + '/data/TWD_one_to_one_raw_sentencepiece.model')
-
-    parser.add_argument('--num_epoch', type=int, default=200)
-    parser.add_argument('--batch_size', type=int, default=512)
-    parser.add_argument('--embedding_size', type=int, default=300)
-    parser.add_argument('--hidden_size', type=int, default=512)
-    parser.add_argument('--max_length', type=int, default=200)
-    parser.add_argument('--num_layer', type=int, default=1)
-    parser.add_argument('--dropout', type=float, default=0.5)
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--clip', type=float, default=0.5)
-    parser.add_argument('--cuda', type=bool, default=True)
-
-    # parser.add_argument('--is_cuda', type=bool, default=False)
-
-    return parser

@@ -3,7 +3,7 @@ import torch.optim as optim
 
 
 from model import BiLSTMCRF
-from utils import f1_score, get_tags_BIE, DataManager, JsonConfig
+from utils import f1_score, DataManager, JsonConfig
 import json
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -47,7 +47,7 @@ def train():
 
             progress = ("█" * int(index * 25 / total_size)).ljust(25)
             print("""epoch [{}] |{}| {}/{}\n\tloss {:.2f}""".format(
-                epoch, progress, index, total_size, loss.cpu().tolist()[0]/args.batch_size
+                epoch+1, progress, index, total_size, loss.cpu().tolist()[0]/args.batch_size
             )
             )
 
